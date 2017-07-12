@@ -11,6 +11,16 @@ This is a temporary script file.
 import socket, pickle, sys, time
 from thread import *
 from threading import Thread
+from flask import *
+
+app = Flask(__name__)
+
+@app.route('/')
+def hello_world():
+    return "Hello World!"
+
+def start_flusk():
+    app.run(host='0.0.0.0', port=5000, threaded=True)
 
 HOST = ''   # Symbolic name, meaning all available interfaces
 PORT = 8893 # Arbitrary non-privileged port
@@ -68,7 +78,9 @@ def print_all_clients():
         time.sleep(5)
 
     return
-
+    
+    
+start_new_thread(start_flusk, ())
 start_new_thread(print_all_clients,())
 
 
