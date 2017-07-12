@@ -8,10 +8,30 @@ This is a temporary script file.
 # -- CLIENT CODE --
 
 
-import socket, pickle, sys, time
+import socket, pickle, sys, time, json
 from thread import *
 from threading import Thread
 from flask import *
+
+def build_update_package(name, version, url, command):
+    package = {}
+    package['Name'] = name
+    package['Version'] = version
+    package['Url'] = version
+    package['command'] = command
+    json_data = json.dumps(package)    
+    #package_part_one = "{Name:" + name + ",Version:" + version + ",Checksum:"
+    #package_part_two = ",URL:" + url + ",Command:" + command + "}"
+    #checksum = sys.getsizeof(package_part_one) + sys.getsizeof(package_part_two)
+    #package = package_part_one + str(checksum) + package_part_two
+    return json_data
+
+clients, count = [], 0
+update_packages = []
+
+update_packages.append(build_update_package("name1", "1.0.24", "https://update_my_client.de", "5"))
+update_packages.append(build_update_package("name2", "1.0.24", "https://update_my_client.de", "5"))
+update_packages.append(build_update_package("name3", "1.0.24", "https://update_my_client.de", "5"))
 
 app = Flask(__name__)
 
@@ -23,9 +43,9 @@ def start_flusk():
     app.run(host='0.0.0.0', port=5000, threaded=True)
 
 HOST = ''   # Symbolic name, meaning all available interfaces
-PORT = 8893 # Arbitrary non-privileged port
+PORT = 8895 # Arbitrary non-privileged port
  
-clients, count = [], 0
+
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 print 'Socket created'
@@ -41,12 +61,7 @@ print 'Socket bind complete'
  
 s.listen(10)
 
-def build_update_package(name, version, url, command):
-    package_part_one = "{Name:" + name + ",Version:" + version + ",Checksum:"
-    package_part_two = ",URL:" + url + ",Command:" + command + "}"
-    checksum = sys.getsizeof(package_part_one) + sys.getsizeof(package_part_two)
-    package = package_part_one + str(checksum) + package_part_two
-    return package
+
 
 def clientthread(conn):
 
@@ -55,14 +70,17 @@ def clientthread(conn):
         #Receiving from client
         data = conn.recv(1024)
         #print data
-        reply = build_update_package("name", "1.0.24", "https://update_my_client.de", "5")
         if not data: 
             break
      
-        conn.sendall(reply)
+        for package in update_packages:
+           conn.sendall(package)
      
     #came out of loop
     conn.close()
+    return  
+
+    
     
 def print_all_clients():
     while 1:
@@ -82,6 +100,7 @@ def print_all_clients():
     
 start_new_thread(start_flusk, ())
 start_new_thread(print_all_clients,())
+
 
 
 while 1:
