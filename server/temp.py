@@ -13,19 +13,35 @@ from thread import *
 from threading import Thread
 from flask import *
 
+def create_json_object():
+    json_package = {}
+    counter = 0
+
+    for package in update_packages:
+        json_package['update_package' + str(counter)] = package
+        counter += 1
+        
+        
+    return json.dumps(json_package)
+        
+
+
+    
 def build_update_package(name, version, url, command):
+    
     package = {}
     package['Name'] = name
     package['Version'] = version
     package['Url'] = version
     package['command'] = command
-    json_data = json.dumps(package)    
+    #json_data = json.dumps(package)    
     #package_part_one = "{Name:" + name + ",Version:" + version + ",Checksum:"
     #package_part_two = ",URL:" + url + ",Command:" + command + "}"
     #checksum = sys.getsizeof(package_part_one) + sys.getsizeof(package_part_two)
     #package = package_part_one + str(checksum) + package_part_two
-    return json_data
-
+    return package
+    
+    
 clients, count = [], 0
 update_packages = []
 
@@ -73,8 +89,10 @@ def clientthread(conn):
         if not data: 
             break
      
-        for package in update_packages:
-           conn.sendall(package)
+        conn.sendall(create_json_object())     
+     
+        #for package in update_packages:
+         #  conn.sendall(package)
      
     #came out of loop
     conn.close()
