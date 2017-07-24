@@ -1,0 +1,22 @@
+﻿Kurzdokumentation
+
+Vorbereitung:
+- zum Kompilieren ist Python3 notwendig. 
+- folgende Bibliotheken müssen installiert sein: cpuinfo, psutil, flask
+
+Anleitung:
+Beim starten des Servers werden zu Beginn alle verfügbaren Netzwerkinterfaces angezeigt welche sich über einen Input auswählen lassen. Somit muss die Ip des Servers nicht mehr manuell im Programmcode eingegeben werden. 
+
+Programmablauf – Starten des Servers:
+Nachdem der Server gestartet wurde, wird zuerst ein Array angelegt, welches die Clients beinhaltent. Anschließend wird ein Flask-Server gestartet, welcher die Updatepakete für die Clients hostet.
+
+Programmablauf - Anmeldung beim Server:
+Wenn sich ein Client bei dem Server anmeldet, wird ein neuer Thread gestartet, der den Client verwaltet, sodass der Server weiter auf neue Verbindungen warten kann. Dieser Thread wird anschließend in dem oben genannten Array gespeichert. 
+
+Programmablauf – Updatezyklus:
+Der Client sendet ein Paket mit der Anfrage Updaterequest und seinen gesamten Hardwareinformationen an den Server. Anschließend sendet dieser eine Liste mit allen verfügbaren Paketen. Hierzu wird ein entsprechendes Json-Objekt erzeugt.
+Der Client extrahiert nun aus diesem Json-Objekt jene Pakete, welche nicht installiert sind.
+Im nächsten Schritt wird das extrahierte Json-Objekt in einer Liste abgelegt, welche alle installierten Pakete beinhaltet. Anschließend werden die Pakete heruntergeladen. 
+Zuletzt wird über die Bibliothek zipfile das Paket entpackt und in einen dafür vorgesehenen Ordner verschoben.
+
+
