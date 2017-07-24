@@ -31,7 +31,7 @@ def build_update_package(name, version, url, command):
     package = {}
     package['Name'] = name
     package['Version'] = version
-    package['Url'] = version
+    package['Url'] = url
     package['command'] = command
     #json_data = json.dumps(package)    
     #package_part_one = "{Name:" + name + ",Version:" + version + ",Checksum:"
@@ -44,9 +44,9 @@ def build_update_package(name, version, url, command):
 clients, count = [], 0
 update_packages = []
 
-update_packages.append(build_update_package("name1", "1.0.24", "http://0.0.0.0:5000/update/update_package_1.txt", "5"))
-update_packages.append(build_update_package("name2", "1.0.24", "http://0.0.0.0:5000/update/update_package_2.txt", "5"))
-update_packages.append(build_update_package("name3", "1.0.24", "http://0.0.0.0:5000/update/update_package_3.txt", "5"))
+update_packages.append(build_update_package("name1", "1.0.24", "http://0.0.0.0:5000/update/update_package_1.txt.zip", "5"))
+update_packages.append(build_update_package("name2", "1.0.24", "http://0.0.0.0:5000/update/update_package_2.txt.zip", "5"))
+update_packages.append(build_update_package("name3", "1.0.24", "http://0.0.0.0:5000/update/update_package_3.txt.zip", "5"))
 
 app = Flask(__name__)
 
@@ -59,8 +59,8 @@ def start_flusk():
 
 @app.route('/update/<path:filename>')
 def downloads(filename):
-    file = filename + ".zip"
-    return send_from_directory('update_packages', file)
+
+    return send_from_directory('update_packages', filename)
 
 
 
@@ -91,11 +91,12 @@ def clientthread(conn):
          
         #Receiving from client
         data = conn.recv(1024)
+        data = bytes(data).decode(encoding='UTF-8')
         #print data
         if not data: 
             break
      
-        conn.sendall(create_json_object())     
+        conn.sendall(create_json_object().encode())     
      
         #for package in update_packages:
          #  conn.sendall(package)

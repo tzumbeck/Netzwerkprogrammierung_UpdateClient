@@ -9,6 +9,8 @@ import socket
 import sys
 import time
 import json
+import urllib.request
+import zipfile
 
 installed_packages = []
 
@@ -16,8 +18,8 @@ installed_packages = []
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 # Connect the socket to the port where the server is listening
-server_address = ('localhost', 8895)
-print >>sys.stderr, 'connecting to %s port %s' % server_address
+server_address = ('localhost', 8893)
+
 sock.connect(server_address)
 
 def sendInfo(cpu, gpu, ram):
@@ -45,9 +47,12 @@ def print_installed_packages():
         
 def install_package(json_package):
     #ig = json.dumps(json_package)    
-    print "installed package " + json_package[1]['Name']
+
     
     installed_packages.append(json_package[1])
+    urllib.request.urlretrieve(json_package[1]['Url'], 'downloaded_packages/' + json_package[1]['Name'] + '-' + json_package[1]['Version'] + '.zip')
+    zipfile.ZipFile('downloaded_packages/' + json_package[1]['Name'] + '-' + json_package[1]['Version'] + '.zip' , 'r').extractall('installed_packages/')
+    print("installed package " + json_package[1]['Name'])
     #print >>sys.stderr, 'received "%s"' % ig['name']
     return 
     
@@ -84,7 +89,7 @@ try:
     
     # Send data
     message = 'blabla'
-    sock.sendall(build_package(["cpu","gpu","ram"],["CPU","GPU","RAM"]))
+    sock.sendall(bytes(build_package(["cpu","gpu","ram"],["CPU","GPU","RAM"]), 'utf-8'))
     time.sleep(5)
     # Look for the response
     amount_received = 0
@@ -92,10 +97,11 @@ try:
     
     while amount_received < amount_expected:
         data = sock.recv(1024)
+        data = bytes(data).decode(encoding='UTF-8')
         amount_received += len(data)
         get_update_packages(data)        
         #print >>sys.stderr, 'received "%s"' % data
 
 finally:
-    print >>sys.stderr, 'closing socket'
+
     sock.close()
