@@ -11,6 +11,21 @@ This is a temporary script file.
 import socket, pickle, sys, time, json, os
 from threading import Thread
 from flask import *
+import netifaces as ni
+
+interface_counter = 0
+
+for interface in ni.interfaces():
+    print("Interface " + str(interface_counter) + ": " + interface)
+    interface_counter += 1
+
+input_interface = input("\nBitte geben Sie ihr Netzwerkinterface an: ")
+
+ni.ifaddresses(ni.interfaces()[int(input_interface)])
+ip = ni.ifaddresses(ni.interfaces()[int(input_interface)])[ni.AF_INET][0]['addr']
+
+print("\nihre Ip ist: " + ip + "\n")
+
 
 def create_json_object():
     json_package = {}
@@ -44,9 +59,9 @@ def build_update_package(name, version, url, command):
 clients, count = [], 0
 update_packages = []
 
-update_packages.append(build_update_package("name1", "1.0.24", "http://0.0.0.0:5000/update/update_package_1.txt.zip", "5"))
-update_packages.append(build_update_package("name2", "1.0.24", "http://0.0.0.0:5000/update/update_package_2.txt.zip", "5"))
-update_packages.append(build_update_package("name3", "1.0.24", "http://0.0.0.0:5000/update/update_package_3.txt.zip", "5"))
+update_packages.append(build_update_package("name1", "1.0.24", "http://" + ip + ":5000/update/update_package_1.txt.zip", "5"))
+update_packages.append(build_update_package("name2", "1.0.24", "http://" + ip + ":5000/update/update_package_2.txt.zip", "5"))
+update_packages.append(build_update_package("name3", "1.0.24", "http://" + ip + ":5000/update/update_package_3.txt.zip", "5"))
 
 app = Flask(__name__)
 
@@ -55,7 +70,7 @@ def hello_world():
     return "Hello World!"
 
 def start_flusk():
-    app.run(host='0.0.0.0', port=5000, threaded=True)
+    app.run(ip, port=5000, threaded=True)
 
 @app.route('/update/<path:filename>')
 def downloads(filename):
@@ -65,7 +80,7 @@ def downloads(filename):
 
 
 HOST = ''   # Symbolic name, meaning all available interfaces
-PORT = 8893 # Arbitrary non-privileged port
+PORT = 8895 # Arbitrary non-privileged port
  
 
 
@@ -90,9 +105,14 @@ def clientthread(conn):
     while True:
          
         #Receiving from client
-        data = conn.recv(1024)
-        data = bytes(data).decode(encoding='UTF-8')
-        #print data
+        data = ""
+        
+        try:
+            data = conn.recv(1024)
+            data = bytes(data).decode(encoding='UTF-8')
+        except:
+            pass
+        
         if not data: 
             break
      
@@ -108,6 +128,10 @@ def clientthread(conn):
     
     
 def print_all_clients():
+    
+    counter = 3
+    loop_counter = 0
+
     while 1:
         c = 0
         print("\n--------------print_all_clients--------------")
@@ -119,7 +143,14 @@ def print_all_clients():
             c+=1
         print("---------------------------------------------\n")
         time.sleep(5)
-
+        
+        loop_counter += 1
+        
+        if loop_counter == 2:
+            counter += 1
+            update_packages.append(build_update_package("name" + str(counter), "1.0.24", "http://" + ip + ":5000/update/update_package_3.txt.zip", "5"))
+            loop_counter = 0
+            
     return
     
     
@@ -128,6 +159,7 @@ tFlusk.start()
 
 tcrint = Thread(target = print_all_clients)
 tcrint.start()
+
 
 
 
@@ -143,6 +175,10 @@ while 1:
     clients.append(t)
         
     time.sleep(5)
+    
+ 
+        
+
     
 s.close()
 

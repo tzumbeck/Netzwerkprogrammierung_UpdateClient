@@ -11,6 +11,10 @@ import time
 import json
 import urllib.request
 import zipfile
+import cpuinfo
+import platform
+import psutil
+import math
 
 installed_packages = []
 
@@ -18,14 +22,10 @@ installed_packages = []
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 # Connect the socket to the port where the server is listening
-server_address = ('localhost', 8893)
+server_address = ('localhost', 8895)
 
 sock.connect(server_address)
 
-def sendInfo(cpu, gpu, ram):
-    
-    return
-    
 
 def build_package(args, v):
     package = "{"
@@ -63,45 +63,41 @@ def get_update_packages(packages):
 
     
     for package_t in tmp.items():
-        #print package_t[1]
-        #fg = json.dumps(package_t[1])
-        
-        #print fg
-        #install_package(fg)           
+          
         if package_t[1] not in installed_packages:
             install_package(package_t)
-            #installed_packages.append(package_t)        
-            #print >>sys.stderr, 'received "%s"' % fg['Name']
-        #print json.dumps(package_t[1], indent=4, sort_keys=True)       
-        #print json.dumps(tmp['update_package1'], indent=4, sort_keys=True)
-        #tmp = json.loads(package)
-        #print json.dumps(package, indent=4, sort_keys=True)
-        #tmp_json_package = json.loads(package)
-        #print >>sys.stderr, 'received "%s"' % package['update_package1']
-        #if tmp_json_package not in installed_packages:
-         #   install_package(tmp_json_package) 
-          #  print >> tmp_json_package[0]
-    
-    #print_installed_packages()
+
     return
 
-try:
+
+while(True):
+
+        ram = psutil.virtual_memory()
+        ram = ram.total / 1024 ** 3
+        ram = math.ceil(ram * 100) / 100
+        
+        sock.sendall(bytes(build_package(["get_update_packages",platform.uname().node ,cpuinfo.get_cpu_info().get('brand'),"NVIDIA GTX 680",str(ram)],["REQUEST","HOSTNAME","CPU","GPU","RAM"]), 'utf-8'))
+        time.sleep(5)
+        # Look for the response
+        amount_received = 0
     
-    # Send data
-    message = 'blabla'
-    sock.sendall(bytes(build_package(["cpu","gpu","ram"],["CPU","GPU","RAM"]), 'utf-8'))
-    time.sleep(5)
-    # Look for the response
-    amount_received = 0
-    amount_expected = len(message)
-    
-    while amount_received < amount_expected:
         data = sock.recv(1024)
         data = bytes(data).decode(encoding='UTF-8')
-        amount_received += len(data)
+            #print data
+        if not data: 
+   
+            break
+    
         get_update_packages(data)        
-        #print >>sys.stderr, 'received "%s"' % data
+            #print >>sys.stderr, 'received "%s"' % data
 
-finally:
+sock.close()
+        
 
-    sock.close()
+
+
+
+
+
+
+
